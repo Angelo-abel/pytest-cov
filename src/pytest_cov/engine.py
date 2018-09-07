@@ -1,6 +1,7 @@
 """Coverage controllers for use by pytest-cov and nose-cov."""
 
 import os
+import pprint
 import random
 import socket
 import sys
@@ -169,6 +170,8 @@ class Central(CovController):
 
         self.cov = self.combining_cov
         self.cov.load()
+        print("self.cov.config 173:")
+        pprint.pprint(vars(self.cov.config))
         self.cov.combine()
         self.cov.save()
 
@@ -250,6 +253,11 @@ class DistMaster(CovController):
         self.cov.save()
         self.cov = self.combining_cov
         self.cov.load()
+        print("os.environ:")
+        import os
+        pprint.pprint(dict(os.environ))
+        print("self.cov.config 256:")
+        pprint.pprint(vars(self.cov.config))
         self.cov.combine()
         self.cov.save()
 
@@ -300,6 +308,8 @@ class DistSlave(CovController):
             # data file to indicate that we have finished.
             self.config.slaveoutput['cov_slave_node_id'] = self.nodeid
         else:
+            print("self.cov.config 308:")
+            pprint.pprint(vars(self.cov.config))
             self.cov.combine()
             self.cov.save()
             # If we are not collocated then add the current path
