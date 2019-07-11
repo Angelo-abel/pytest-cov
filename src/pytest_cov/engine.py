@@ -234,10 +234,10 @@ class DistMaster(CovController):
                                     data_suffix=data_suffix,
                                     config_file=self.cov_config)
             cov.start()
-            data = CoverageData()
-            data.read_fileobj(StringIO(node.slaveoutput['cov_slave_data']))
-            cov.data.update(data)
             cov.stop()
+            data = CoverageData(no_disk=True)
+            data.loads(node.slaveoutput['cov_slave_data'])
+            cov.get_data().update(data)
             cov.save()
             path = node.slaveoutput['cov_slave_path']
             self.cov.config.paths['source'].append(path)
@@ -314,9 +314,8 @@ class DistSlave(CovController):
             # Send all the data to the master over the channel.
             self.config.slaveoutput['cov_slave_path'] = self.topdir
             self.config.slaveoutput['cov_slave_node_id'] = self.nodeid
-            buff = StringIO()
-            self.cov.data.write_fileobj(buff)
-            self.config.slaveoutput['cov_slave_data'] = buff.getvalue()
+            data = self.cov.get_data().dumps()
+            self.config.slaveoutput['cov_slave_data'] = data
 
     def summary(self, stream):
         """Only the master reports so do nothing."""
