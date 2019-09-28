@@ -49,12 +49,12 @@ def validate_fail_under(num_str):
         return float(num_str)
 
 
-def validate_contexts(arg):
+def validate_context(arg):
     if coverage.version_info <= (5, 0):
-        msg = 'Contexts are only supported with coverage.py >= 5.x'
+        msg = 'Context is only supported with coverage.py >= 5.x'
         raise argparse.ArgumentTypeError(msg)
     if arg != "test":
-        msg = '--cov-contexts=test is the only supported value'
+        msg = '--cov-context=test is the only supported value'
         raise argparse.ArgumentTypeError(msg)
     return arg
 
@@ -99,9 +99,9 @@ def pytest_addoption(parser):
                          'Default: False')
     group.addoption('--cov-branch', action='store_true', default=None,
                     help='Enable branch coverage.')
-    group.addoption('--cov-contexts', action='store', metavar='CONTEXT',
-                    type=validate_contexts,
-                    help='Dynamic contexts to use. "test" for now.')
+    group.addoption('--cov-context', action='store', metavar='CONTEXT',
+                    type=validate_context,
+                    help='Dynamic context to use. "test" for now.')
 
 
 def _prepare_cov_source(cov_source):
@@ -165,9 +165,6 @@ class CovPlugin(object):
         elif start:
             self.start(engine.Central)
 
-        if getattr(options, 'cov_contexts', None) == 'test':
-            pluginmanager.register(TestContextPlugin(self.cov_controller.cov), '_cov_contexts')
-
         # worker is started in pytest hook
 
     def start(self, controller_cls, config=None, nodeid=None):
@@ -214,6 +211,12 @@ class CovPlugin(object):
             self.start(engine.DistWorker, session.config, nodeid)
         elif not self._started:
             self.start(engine.Central)
+
+        if self.options.cov_context == 'test':
+            session.config.pluginmanager.register(
+                TestContextPlugin(self.cov_controller.cov),
+                '_cov_context'
+            )
 
     def pytest_configure_node(self, node):
         """Delegate to our implementation.
